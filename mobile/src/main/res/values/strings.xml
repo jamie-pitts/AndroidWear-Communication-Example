@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">JamiesWearableApp</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="notification_button">Send Wear Notification</string>
+    <string name="button_message_send">Send Message To Wearable</string>
+</resources>
