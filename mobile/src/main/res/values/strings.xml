@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">AndroidWear-Communication-Example</string>
 
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="notification_button">Create Notification</string>
     <string name="notification_wear_button">Create Notification On Wear</string>

@@ -1,6 +1,7 @@
 package com.jamiepitts.wear.communicationexample;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -29,6 +30,12 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.jamiepitts.wear.communicationexample.shared.CommunicationUtils.sendMessage;
+import static com.jamiepitts.wear.communicationexample.shared.Constants.*;
+
+/**
+ * Activity on the wear, uses listeners to receive communication from the handheld
+ */
 public class WearActivity extends Activity implements MessageApi.MessageListener,
                                                       DataApi.DataListener,
                                                       GoogleApiClient.ConnectionCallbacks {
@@ -43,6 +50,7 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wear);
+
         final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
@@ -54,9 +62,17 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
                 mImageButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        sendMessage("/request", "image");
+                        //Request a random image from the handheld
+                        sendMessage(mGoogleApiClient, PATH_REQUEST, IMAGE);
                     }
                 });
+
+                //Sets the message to text from the notification if sent
+                Intent intent = getIntent();
+                String notificationMessage = intent.getStringExtra(NOTIFICATION_MESSAGE);
+                if(notificationMessage != null){
+                    mTextView.setText(notificationMessage);
+                }
             }
         });
 
@@ -80,9 +96,7 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
 
     @Override
     public void onConnected(Bundle bundle) {
-        if (Log.isLoggable(TAG, Log.DEBUG)) {
-            Log.d(TAG, "Connected to Google Api Service");
-        }
+        Log.v(TAG, "Connected to Google Api Service");
         Wearable.MessageApi.addListener(mGoogleApiClient, this);
         Wearable.DataApi.addListener(mGoogleApiClient, this);
     }
@@ -96,12 +110,10 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
     }
 
     @Override
-    /**
-     * Displays a message sent from the phone on the wear
-     */
     public void onMessageReceived(final MessageEvent messageEvent) {
         Log.v(TAG, "Wear message received: " + messageEvent.getPath() + " " + new String(messageEvent.getData()));
-        if (messageEvent.getPath().equals("/message")) {
+        //If a message has been sent over. display it on the wear
+        if (messageEvent.getPath().equals(PATH_MESSAGE)) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -115,11 +127,11 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
     public void onDataChanged(DataEventBuffer dataEvents) {
         final List<DataEvent> events = FreezableUtils.freezeIterable(dataEvents);
         for (DataEvent event : events) {
-            //If a image has been sent over
-            if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem().getUri().getPath().equals("/image")) {
+            //If a image has been sent over, get the image and display it on the wear
+            if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem().getUri().getPath().equals(IMAGE_REPLY)) {
                 DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
-                Asset imageAsset = dataMapItem.getDataMap().getAsset("profileImage");
-                Long timeSentAt = dataMapItem.getDataMap().getLong("time");
+                Asset imageAsset = dataMapItem.getDataMap().getAsset(IMAGE);
+                Long timeSentAt = dataMapItem.getDataMap().getLong(IMAGE_TIME_SENT);
 
                 Log.v(TAG, "Received Image! Took " + (System.currentTimeMillis() - timeSentAt) + "ms to send");
 
@@ -135,30 +147,9 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
     }
 
     /**
-     * Sends a string message to all connected nodes
+     * Extracts a bitmap from an asset - Taken from Google Wear Example
      */
-    private void sendMessage(final String path, final String message){
-        new Thread( new Runnable() {
-            @Override
-            public void run() {
-                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
-                for (Node node : nodes.getNodes()) {
-                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
-                            mGoogleApiClient, node.getId(), path, message.getBytes()).await();
-                    if (result.getStatus().isSuccess()) {
-                        Log.v(TAG, "Successfully sent message to node: " + node.getId());
-                    } else {
-                        Log.v(TAG, "Problem sending message to: " + node.getId());
-                    }
-                }
-            }
-        }).start();
-    }
-
-    /**
-     * Extracts a bitmap from an asset
-     */
-    public Bitmap loadBitmapFromAsset(Asset asset) {
+    private Bitmap loadBitmapFromAsset(Asset asset) {
         if (asset == null) {
             throw new IllegalArgumentException("Asset must be non-null");
         }

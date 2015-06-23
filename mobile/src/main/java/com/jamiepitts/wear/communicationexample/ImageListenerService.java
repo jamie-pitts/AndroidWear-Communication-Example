@@ -10,6 +10,7 @@ import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
@@ -20,7 +21,12 @@ import java.io.IOException;
 
 import static com.jamiepitts.wear.communicationexample.BitmapUtils.createAssetFromBitmap;
 import static com.jamiepitts.wear.communicationexample.BitmapUtils.downloadBitmap;
+import static com.jamiepitts.wear.communicationexample.shared.CommunicationUtils.sendDataMap;
+import static com.jamiepitts.wear.communicationexample.shared.Constants.*;
 
+/**
+ * Service that listens for communication from the wearable, in this case listens for requests for images
+ */
 public class ImageListenerService extends WearableListenerService {
     private static final String TAG = "ImageListenerService";
 
@@ -44,8 +50,8 @@ public class ImageListenerService extends WearableListenerService {
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
         Log.v(TAG, "On Message Received: " + messageEvent.getPath() + " " + new String(messageEvent.getData()));
-        if (messageEvent.getPath().equals("/request")) {
-            if(new String(messageEvent.getData()).equals("image")) {
+        if (messageEvent.getPath().equals(PATH_REQUEST)) {
+            if(new String(messageEvent.getData()).equals(IMAGE)) {
                 getAndSendImage();
             } else {
                 Log.e(TAG, "Unknown request found for data: " + new String(messageEvent.getData()));
@@ -73,13 +79,11 @@ public class ImageListenerService extends WearableListenerService {
                 }
                 Asset asset = createAssetFromBitmap(bitmap);
 
-                PutDataMapRequest dataMap = PutDataMapRequest.create("/image");
-                dataMap.getDataMap().putAsset("profileImage", asset);
-                dataMap.getDataMap().putLong("time", System.currentTimeMillis());
-                PutDataRequest request = dataMap.asPutDataRequest();
+                DataMap dataMap = new DataMap();
+                dataMap.putAsset(IMAGE, asset);
+                dataMap.putLong(IMAGE_TIME_SENT, System.currentTimeMillis());
 
-                PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi
-                        .putDataItem(mGoogleApiClient, request);
+                sendDataMap(mGoogleApiClient, IMAGE_REPLY, dataMap);
             }
         }).start();
     }

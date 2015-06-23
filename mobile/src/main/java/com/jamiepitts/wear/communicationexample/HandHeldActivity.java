@@ -21,10 +21,10 @@ import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
+import static com.jamiepitts.wear.communicationexample.shared.CommunicationUtils.*;
+import static com.jamiepitts.wear.communicationexample.shared.Constants.*;
 
 public class HandHeldActivity extends Activity {
-    private static final String TAG = "HandHeldActivity";
-
     private Button mButton, mMessageButton, mFullScreenAppButton;
     private EditText mMessageEditText;
     private NotificationManagerCompat mNotificationManager;
@@ -55,7 +55,7 @@ public class HandHeldActivity extends Activity {
         mMessageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMessage("/message", mMessageEditText.getText().toString());
+                sendMessage(mGoogleApiClient, PATH_MESSAGE, mMessageEditText.getText().toString());
             }
         });
 
@@ -64,78 +64,13 @@ public class HandHeldActivity extends Activity {
             @Override
             public void onClick(View v) {
                 DataMap notifyWearable = new DataMap();
-                notifyWearable.putString("title", "Open Wear App");
-                notifyWearable.putString("body", "< Swipe <");
-                notifyWearable.putString("message", "message from notification");
-                notifyWearable.putFloat("time", System.currentTimeMillis());
-                sendDataMap(mGoogleApiClient, "/wearable_start", notifyWearable);
+                notifyWearable.putString(NOTIFICATION_TITLE, "Open Wear App");
+                notifyWearable.putString(NOTIFICATION_BODY, "< Swipe <");
+                notifyWearable.putString(NOTIFICATION_MESSAGE, "message from notification");
+                notifyWearable.putFloat(NOTIFICATION_TIME, System.currentTimeMillis());
+                sendDataMap(mGoogleApiClient, PATH_WEARABLE_NOTIFICATION, notifyWearable);
             }
         });
-    }
-
-    /**
-     * Sends a string message to all connected nodes
-     */
-    private void sendMessage(final String path, final String message){
-        new Thread( new Runnable() {
-            @Override
-            public void run() {
-                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
-                for (Node node : nodes.getNodes()) {
-                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
-                            mGoogleApiClient, node.getId(), path, message.getBytes()).await();
-
-                    if (result.getStatus().isSuccess()) {
-                        Log.v(TAG, "Successfully sent message to node: " + node.getId());
-                    } else {
-                        Log.v(TAG, "Problem sending message to: " + node.getId());
-                    }
-                }
-            }
-        }).start();
-    }
-
-    public static void sendDataMap(final GoogleApiClient mGoogleApiClient, final String path,
-                                   final DataMap dataMap) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                PutDataMapRequest dataMapRequest = PutDataMapRequest.create(path);
-                dataMapRequest.getDataMap().putAll(dataMap);
-                PutDataRequest request = dataMapRequest.asPutDataRequest();
-
-                DataApi.DataItemResult result = Wearable.DataApi
-                        .putDataItem(mGoogleApiClient, request).await();
-
-                if (result.getStatus().isSuccess()) {
-                    Log.v(TAG, "Successfully put data onto data api");
-                } else {
-                    Log.v(TAG, "Problem putting data onto data api");
-                }
-            }
-        }).start();
-    }
-
-    /**
-     * Creates a notification
-     */
-    private Notification createNotification() {
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplication())
-                                                                .setSmallIcon(R.mipmap.ic_launcher)
-                                                                .setContentTitle("Hello World!")
-                                                                .setContentText("Notification from Jamie");
-
-        //Adds a second page to the notification on the watch
-        NotificationCompat.Extender wearNotificationExtender = new NotificationCompat.WearableExtender()
-                                                                    .addPage(new NotificationCompat.Builder(getApplication())
-                                                                            .extend(new NotificationCompat.WearableExtender()
-                                                                                    .setBackground(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
-                                                                                    .setHintShowBackgroundOnly(true))
-                                                                                    .build()
-                                                                            );
-        return notificationBuilder
-                .extend(wearNotificationExtender)
-                .build();
     }
 
     @Override
@@ -148,6 +83,29 @@ public class HandHeldActivity extends Activity {
     protected void onStop() {
         mGoogleApiClient.disconnect();
         super.onStop();
+    }
+
+    /**
+     * Creates a notification, will appear both on the wear and the handheld device
+     */
+    private Notification createNotification() {
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplication())
+                                                                .setSmallIcon(R.mipmap.ic_launcher)
+                                                                .setContentTitle("Example notification")
+                                                                .setContentText("Hello wear and mobile!");
+
+        //Adds a second page to the notification on the watch
+        //In this case it is just an image of the android logo
+        NotificationCompat.Extender wearNotificationExtender = new NotificationCompat.WearableExtender()
+                                                                    .addPage(new NotificationCompat.Builder(getApplication())
+                                                                            .extend(new NotificationCompat.WearableExtender()
+                                                                                    .setBackground(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
+                                                                                    .setHintShowBackgroundOnly(true))
+                                                                                    .build()
+                                                                            );
+        return notificationBuilder
+                .extend(wearNotificationExtender)
+                .build();
     }
 }
 

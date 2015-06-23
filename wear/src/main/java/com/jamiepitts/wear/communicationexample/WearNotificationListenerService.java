@@ -16,6 +16,11 @@ import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 import com.google.android.gms.wearable.WearableListenerService;
 
+import static com.jamiepitts.wear.communicationexample.shared.Constants.*;
+
+/**
+ * Service on the wear, listens out for communication from the handheld to respond to
+ */
 public class WearNotificationListenerService extends WearableListenerService {
     private static final String TAG = "NotificationLS";
     private static final int NOTIFICATION_ID = 1;
@@ -47,22 +52,26 @@ public class WearNotificationListenerService extends WearableListenerService {
     public void onDataChanged(DataEventBuffer dataEvents) {
         Log.v(TAG, "On Data Changed: " + dataEvents.getCount() + ", " + dataEvents.getStatus());
         for (DataEvent event : dataEvents) {
-            if(event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem().getUri().getPath().equals("/wearable_start")) {
+            //If a notification request is sent over, create and display a notification on the wear
+            if(event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem().getUri().getPath().equals(PATH_WEARABLE_NOTIFICATION)) {
                 DataMap dataMap = DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
                 sendLocalNotification(dataMap);
             }
         }
     }
 
+    /**
+     * Creates and displays a notification locally on the wear device
+     */
     private void sendLocalNotification(DataMap dataMap) {
         Intent startWearAppIntent = new Intent(this, WearActivity.class).setAction(Intent.ACTION_MAIN);
-        startWearAppIntent.putExtra("message", dataMap.getString("message"));
+        startWearAppIntent.putExtra(NOTIFICATION_MESSAGE, dataMap.getString(NOTIFICATION_MESSAGE));
         PendingIntent startWearAppPendingIntent =
                 PendingIntent.getActivity(this, 0, startWearAppIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-                .setContentTitle(dataMap.getString("title"))
-                .setContentText(dataMap.getString("body"))
+                .setContentTitle(dataMap.getString(NOTIFICATION_TITLE))
+                .setContentText(dataMap.getString(NOTIFICATION_BODY))
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setAutoCancel(true)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

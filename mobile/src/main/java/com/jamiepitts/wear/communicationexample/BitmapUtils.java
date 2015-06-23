@@ -11,11 +11,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class BitmapUtils {
+    private static final String TAG = "BitmapUtils";
 
     public static Asset createAssetFromBitmap(Bitmap bitmap) {
         final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteStream);
-        Log.v("BitmapUtils", "Compressed Image Size: " + (byteStream.size()/1024 + "kb"));
+        Log.v(TAG, "Compressed Image Size: " + (byteStream.size()/1024 + "kb"));
         return Asset.createFromBytes(byteStream.toByteArray());
     }
 
