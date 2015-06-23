@@ -12,21 +12,23 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
 
-public class HandHeldActivity extends Activity{ //implements GoogleApiClient.ConnectionCallbacks,
-                                               //           GoogleApiClient.OnConnectionFailedListener,
-                                               //           MessageApi.MessageListener{
+public class HandHeldActivity extends Activity {
     private static final String TAG = "HandHeldActivity";
 
-    private Button mButton, mMessageButton;
-    private EditText editText;
-    private NotificationManagerCompat notificationManager;
-    private int notificationId = 1;
+    private Button mButton, mMessageButton, mFullScreenAppButton;
+    private EditText mMessageEditText;
+    private NotificationManagerCompat mNotificationManager;
+    private int mNotificationId = 1;
     private GoogleApiClient mGoogleApiClient;
 
     @Override
@@ -34,18 +36,18 @@ public class HandHeldActivity extends Activity{ //implements GoogleApiClient.Con
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hand_held);
 
-        notificationManager = NotificationManagerCompat.from(getApplication());
-        editText = (EditText) findViewById(R.id.textMessage);
+        mNotificationManager = NotificationManagerCompat.from(getApplication());
+        mMessageEditText = (EditText) findViewById(R.id.textMessage);
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                                 .addApi(Wearable.API)
                                 .build();
 
-        mButton = (Button) findViewById(R.id.button);
+        mButton = (Button) findViewById(R.id.create_notification_button);
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                notificationManager.notify(notificationId, createNotification());
-                notificationId++;
+                mNotificationManager.notify(mNotificationId, createNotification());
+                mNotificationId++;
             }
         });
 
@@ -53,7 +55,20 @@ public class HandHeldActivity extends Activity{ //implements GoogleApiClient.Con
         mMessageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMessage("/message", editText.getText().toString());
+                sendMessage("/message", mMessageEditText.getText().toString());
+            }
+        });
+
+        mFullScreenAppButton = (Button) findViewById(R.id.wear_notification_button);
+        mFullScreenAppButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DataMap notifyWearable = new DataMap();
+                notifyWearable.putString("title", "Open Wear App");
+                notifyWearable.putString("body", "< Swipe <");
+                notifyWearable.putString("message", "message from notification");
+                notifyWearable.putFloat("time", System.currentTimeMillis());
+                sendDataMap(mGoogleApiClient, "/wearable_start", notifyWearable);
             }
         });
     }
@@ -69,11 +84,33 @@ public class HandHeldActivity extends Activity{ //implements GoogleApiClient.Con
                 for (Node node : nodes.getNodes()) {
                     MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
                             mGoogleApiClient, node.getId(), path, message.getBytes()).await();
+
                     if (result.getStatus().isSuccess()) {
                         Log.v(TAG, "Successfully sent message to node: " + node.getId());
                     } else {
                         Log.v(TAG, "Problem sending message to: " + node.getId());
                     }
+                }
+            }
+        }).start();
+    }
+
+    public static void sendDataMap(final GoogleApiClient mGoogleApiClient, final String path,
+                                   final DataMap dataMap) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                PutDataMapRequest dataMapRequest = PutDataMapRequest.create(path);
+                dataMapRequest.getDataMap().putAll(dataMap);
+                PutDataRequest request = dataMapRequest.asPutDataRequest();
+
+                DataApi.DataItemResult result = Wearable.DataApi
+                        .putDataItem(mGoogleApiClient, request).await();
+
+                if (result.getStatus().isSuccess()) {
+                    Log.v(TAG, "Successfully put data onto data api");
+                } else {
+                    Log.v(TAG, "Problem putting data onto data api");
                 }
             }
         }).start();

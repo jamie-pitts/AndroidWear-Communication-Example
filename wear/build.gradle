@@ -6,7 +6,7 @@ android {
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        applicationId "com.jamiepitts.wearapp.jamieswearableapp"
+        applicationId "com.jamiepitts.wear.communicationexample"
         minSdkVersion 20
         targetSdkVersion 22
         versionCode 1
