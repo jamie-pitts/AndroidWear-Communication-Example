@@ -1,4 +1,4 @@
-package com.jamiepitts.wearapp.jamieswearableapp;
+package com.jamiepitts.wear.communicationexample;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

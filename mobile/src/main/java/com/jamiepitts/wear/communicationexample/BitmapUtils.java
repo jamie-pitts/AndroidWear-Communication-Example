@@ -1,23 +1,14 @@
-package com.jamiepitts.wearapp.jamieswearableapp;
+package com.jamiepitts.wear.communicationexample;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import com.google.android.gms.wearable.Asset;
 import com.squareup.picasso.Picasso;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 
 public class BitmapUtils {
 

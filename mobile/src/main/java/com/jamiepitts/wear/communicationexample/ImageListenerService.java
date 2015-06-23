@@ -1,32 +1,25 @@
-package com.jamiepitts.wearapp.jamieswearableapp;
+package com.jamiepitts.wear.communicationexample;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.data.FreezableUtils;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
-import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.google.android.gms.wearable.WearableListenerService;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import static com.jamiepitts.wearapp.jamieswearableapp.BitmapUtils.createAssetFromBitmap;
-import static com.jamiepitts.wearapp.jamieswearableapp.BitmapUtils.downloadBitmap;
+import static com.jamiepitts.wear.communicationexample.BitmapUtils.createAssetFromBitmap;
+import static com.jamiepitts.wear.communicationexample.BitmapUtils.downloadBitmap;
 
 public class ImageListenerService extends WearableListenerService {
     private static final String TAG = "ImageListenerService";

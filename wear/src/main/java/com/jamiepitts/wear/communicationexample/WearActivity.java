@@ -1,4 +1,4 @@
-package com.jamiepitts.wearapp.jamieswearableapp;
+package com.jamiepitts.wear.communicationexample;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -26,7 +26,6 @@ import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 

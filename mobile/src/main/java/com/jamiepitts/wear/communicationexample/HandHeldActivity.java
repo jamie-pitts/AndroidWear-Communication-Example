@@ -1,38 +1,21 @@
-package com.jamiepitts.wearapp.jamieswearableapp;
+package com.jamiepitts.wear.communicationexample;
 
 import android.app.Activity;
 import android.app.Notification;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.wearable.Asset;
-import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.MessageApi;
-import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
-import com.google.android.gms.wearable.PutDataMapRequest;
-import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
-
-import java.io.ByteArrayOutputStream;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.concurrent.TimeUnit;
 
 
 public class HandHeldActivity extends Activity{ //implements GoogleApiClient.ConnectionCallbacks,
